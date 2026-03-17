@@ -1,0 +1,83 @@
+{
+  "projectType": "saas",
+  "projectName": "TruequeU",
+  "projectDescription": "A peer-to-peer marketplace web app for university students to buy, sell, and trade items like books and electronics within their campus community.",
+  "theme": "almond",
+  "primaryColor": "#747474",
+  "lightColor": "#0b0b0b",
+  "darkColor": "#b5b5b5",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": ["introduction", "getting-started"]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/listings",
+              "features/create-listing",
+              "features/chat",
+              "features/profile",
+              "features/favorites"
+            ]
+          },
+          {
+            "group": "Account",
+            "pages": [
+              "account/sign-up",
+              "account/login"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Technical Reference",
+        "groups": [
+          {
+            "group": "Architecture",
+            "pages": [
+              "reference/architecture",
+              "reference/state-management",
+              "reference/routing"
+            ]
+          },
+          {
+            "group": "Data & Services",
+            "pages": [
+              "reference/data-types",
+              "reference/auth-service",
+              "reference/listing-service"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Peer-to-peer listings marketplace for students",
+    "Category-based item browsing (Electronics, Books, Services, Other)",
+    "Real-time in-app chat between buyers and sellers",
+    "User authentication with registration and login",
+    "Listing creation with image upload and validation",
+    "Favorites system to save items of interest",
+    "User profiles with personal listing management",
+    "Persistent state via localStorage using Zustand"
+  ],
+  "publicApiSurface": [
+    "validateLogin(email, password) → User | null",
+    "registerUser({ email, name, password }) → User",
+    "isEmailTaken(email) → boolean",
+    "validatePassword(password) → { valid, message }",
+    "validateListing({ title, description, price }) → ListingValidation",
+    "useStore() — Zustand store with listings, user, chats state",
+    "addListing(item: Listing) → void",
+    "updateStatus(id, status) → void",
+    "toggleFavorite(id) → void",
+    "getOrCreateChat(listingId, listingTitle, sellerId, buyerId) → Chat",
+    "addChatMessage(chatId, senderId, text) → void"
+  ]
+}
