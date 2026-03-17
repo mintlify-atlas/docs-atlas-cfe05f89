@@ -1,0 +1,140 @@
+---
+title: "Architecture Overview"
+description: "High-level architecture of TruequeU — a fully client-side SPA built with React 19, Vite, and Zustand."
+---
+
+TruequeU is a single-page application (SPA) with no backend. All application state is managed on the client using Zustand and persisted to the browser's `localStorage`. There are no API calls, no server, and no database — the app is entirely self-contained in the browser.
+
+<Note>
+  There is no backend API. All data — listings, user sessions, and chat messages — lives in the browser via `localStorage`. Clearing browser storage resets the app to its seed data state.
+</Note>
+
+## Tech Stack
+
+<CardGroup cols={2}>
+  <Card title="React 19.2.4" icon="react">
+    UI framework. Components are written as functional React components with hooks throughout.
+  </Card>
+  <Card title="TypeScript ~5.9.3" icon="code">
+    Strict type safety across the entire codebase. All interfaces are defined in `src/types.ts`.
+  </Card>
+  <Card title="Vite 8.0.0" icon="bolt">
+    Build tool with Hot Module Replacement (HMR). Uses `@vitejs/plugin-react` for Fast Refresh and `@tailwindcss/vite` for CSS processing.
+  </Card>
+  <Card title="React Router DOM 7.13.1" icon="map">
+    Client-side routing via `BrowserRouter`. All route definitions live in `App.tsx`.
+  </Card>
+  <Card title="Zustand 5.0.11" icon="database">
+    Lightweight global state management. The store uses the `persist` middleware to sync state to `localStorage`.
+  </Card>
+  <Card title="TailwindCSS 4.2.1" icon="paintbrush">
+    Utility-first CSS framework. Integrated via the official Vite plugin (`@tailwindcss/vite`).
+  </Card>
+</CardGroup>
+
+## Directory Structure
+
+All application source code lives under `src/`:
+
+```
+src/
+├── main.tsx              # Entry point — mounts React, wraps app in BrowserRouter
+├── App.tsx               # Root component — Navbar + all route definitions
+├── index.css             # Global styles (Tailwind base)
+├── types.ts              # Shared TypeScript interfaces (Listing, User, ListingStatus)
+│
+├── pages/                # Route-level components (one file per route)
+│   ├── home.tsx
+│   ├── listings.tsx
+│   ├── listing-details.tsx
+│   ├── create-listing.tsx
+│   ├── login.tsx
+│   ├── sign-up.tsx
+│   ├── chat.tsx
+│   ├── profile.tsx
+│   └── not-found.tsx
+│
+├── components/           # Reusable UI components
+│   ├── layout/           # App shell (Navbar)
+│   ├── listings/         # Listing card, grid, filters
+│   └── profile/          # Profile-related components
+│
+├── store/
+│   └── useStore.ts       # Single Zustand store with persist middleware
+│
+├── services/             # Business logic (no network calls)
+│   ├── auth.service.ts   # Login, registration, password validation
+│   ├── listing.service.ts# Listing field validation
+│   └── index.ts          # Re-exports all services
+│
+└── data/                 # Seed / mock data loaded at startup
+    ├── items.ts           # 15 sample Listing objects
+    └── users.ts           # 10 sample users with hashed passwords
+```
+
+## Application Entry Point
+
+The app is bootstrapped in `main.tsx`, which mounts React into the `#root` DOM node and wraps everything in `BrowserRouter` to enable client-side routing:
+
+```tsx
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.tsx'
+import { BrowserRouter } from 'react-router-dom'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </StrictMode>,
+)
+```
+
+## Data Flow
+
+The app follows a unidirectional data flow with no async effects or network layer:
+
+<Steps>
+  <Step title="User action">
+    The user interacts with a page component (e.g., submits a listing form, clicks favorite, logs in).
+  </Step>
+  <Step title="Store action called">
+    The component calls an action from `useStore` (e.g., `addListing`, `toggleFavorite`, `login`).
+  </Step>
+  <Step title="Zustand updates state">
+    Zustand runs the action's `set()` call, producing a new immutable state snapshot.
+  </Step>
+  <Step title="Persist middleware syncs to localStorage">
+    The `persist` middleware automatically serializes the `listings`, `user`, and `chats` slices to `localStorage` under the key `marketplace-storage`.
+  </Step>
+  <Step title="React re-renders">
+    All components subscribed to the changed state slice re-render with the new data.
+  </Step>
+</Steps>
+
+## Vite Configuration
+
+The `vite.config.ts` is minimal — TailwindCSS and React Fast Refresh are registered as plugins:
+
+```ts
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+})
+```
+
+## Services Layer
+
+The `services/` directory contains pure functions for business logic. These functions do not touch the Zustand store directly — they are called by page components which then dispatch the result into the store.
+
+| Service | Responsibility |
+|---|---|
+| `auth.service.ts` | Login validation, user registration, email uniqueness check, password rules |
+| `listing.service.ts` | Validates listing fields (title length, description length, price range) |
+
+Seed users are stored in `data/users.ts` and checked during login before falling back to `localStorage`-registered accounts.

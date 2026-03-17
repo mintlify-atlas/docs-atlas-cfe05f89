@@ -1,0 +1,265 @@
+---
+title: "State Management"
+description: "Zustand store architecture for TruequeU — state shape, persist configuration, and all available actions."
+---
+
+TruequeU uses a single [Zustand](https://zustand.pmnd.rs/) store defined in `src/store/useStore.ts`. The store is wrapped with Zustand's `persist` middleware, which automatically serializes a subset of state to `localStorage` so data survives page refreshes.
+
+## Persistence
+
+The `persist` middleware stores a partial snapshot of state under the localStorage key `'marketplace-storage'`.
+
+Only three slices are persisted via the `partialize` function:
+
+```ts
+persist(
+  (set, get) => ({ /* ... */ }),
+  {
+    name: 'marketplace-storage',
+    partialize: (state) => ({
+      listings: state.listings,
+      user: state.user,
+      chats: state.chats,
+    }),
+  }
+)
+```
+
+<Note>
+  `searchQuery` is **not** persisted. It resets to an empty string on every page load.
+</Note>
+
+## State Shape
+
+The full `StoreState` interface:
+
+```ts
+interface StoreState {
+  listings: Listing[];
+  user: User | null;
+  searchQuery: string;
+  chats: Record<string, Chat>;
+
+  // Actions
+  addListing: (item: Listing) => void;
+  updateStatus: (id: string, status: Listing['status']) => void;
+  toggleFavorite: (id: string) => void;
+  login: (userData: User) => void;
+  logout: () => void;
+  setSearchQuery: (query: string) => void;
+  getOrCreateChat: (listingId: string, listingTitle: string, sellerId: string, buyerId: string) => Chat;
+  addChatMessage: (chatId: string, senderId: string, text: string) => void;
+}
+```
+
+### State Fields
+
+<ResponseField name="listings" type="Listing[]" required>
+  The array of all marketplace listings. New listings are prepended (most recent first). Seeded from `data/items.ts` on first load if localStorage is empty.
+</ResponseField>
+
+<ResponseField name="user" type="User | null" required>
+  The currently authenticated user, or `null` if no one is logged in. Set by `login()` and cleared by `logout()`.
+</ResponseField>
+
+<ResponseField name="searchQuery" type="string" required>
+  The current search string entered in the Navbar. Used by the listings page to filter results. Not persisted to localStorage.
+</ResponseField>
+
+<ResponseField name="chats" type="Record<string, Chat>" required>
+  A map of all chat threads keyed by `chatId`. Each chat is scoped to a single listing and a buyer/seller pair. Persisted to localStorage.
+</ResponseField>
+
+## TypeScript Interfaces
+
+### Listing
+
+Defined in `src/types.ts`:
+
+```ts
+export type ListingStatus = "available" | "reserved" | "sold";
+
+export interface Listing {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  category: string;
+  status: ListingStatus;
+  images: string[];
+  ownerId: string;
+  isFavorite: boolean;
+}
+```
+
+### User
+
+```ts
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+}
+```
+
+### Chat and ChatMessage
+
+Defined in `src/store/useStore.ts`:
+
+```ts
+export interface ChatMessage {
+  id: string;         // e.g. "msg-1718000000000"
+  senderId: string;   // User id of the sender
+  text: string;
+  time: string;       // Formatted as "HH:MM" (12/24h based on locale)
+}
+
+export interface Chat {
+  id: string;           // "{listingId}-{buyerId}"
+  listingId: string;
+  listingTitle: string;
+  sellerId: string;
+  buyerId: string;
+  messages: ChatMessage[];
+}
+```
+
+## Store Actions
+
+### Listing Actions
+
+<ResponseField name="addListing(item: Listing)" type="void">
+  Prepends a new listing to the `listings` array so the newest item appears first.
+
+  ```ts
+  addListing: (item) =>
+    set((state) => ({
+      listings: [item, ...state.listings],
+    }))
+  ```
+</ResponseField>
+
+<ResponseField name="updateStatus(id: string, status: Listing['status'])" type="void">
+  Finds the listing by `id` and updates its `status` field. Valid values are `"available"`, `"reserved"`, and `"sold"`.
+
+  ```ts
+  updateStatus: (id, status) =>
+    set((state) => ({
+      listings: state.listings.map((l) =>
+        l.id === id ? { ...l, status } : l
+      ),
+    }))
+  ```
+</ResponseField>
+
+<ResponseField name="toggleFavorite(id: string)" type="void">
+  Flips the `isFavorite` boolean on the listing with the given `id`.
+
+  ```ts
+  toggleFavorite: (id) =>
+    set((state) => ({
+      listings: state.listings.map((l) =>
+        l.id === id ? { ...l, isFavorite: !l.isFavorite } : l
+      ),
+    }))
+  ```
+</ResponseField>
+
+### Auth Actions
+
+<ResponseField name="login(userData: User)" type="void">
+  Sets `user` in the store. Should be called after a successful `validateLogin()` call from `auth.service.ts`.
+
+  ```ts
+  login: (userData) => set({ user: userData })
+  ```
+</ResponseField>
+
+<ResponseField name="logout()" type="void">
+  Sets `user` to `null`, effectively ending the session.
+
+  ```ts
+  logout: () => set({ user: null })
+  ```
+</ResponseField>
+
+### Search Action
+
+<ResponseField name="setSearchQuery(query: string)" type="void">
+  Updates `searchQuery`. The Navbar calls this on every keystroke; the listings page reads it to filter displayed results.
+
+  ```ts
+  setSearchQuery: (query) => set({ searchQuery: query })
+  ```
+</ResponseField>
+
+### Chat Actions
+
+<ResponseField name="getOrCreateChat(listingId, listingTitle, sellerId, buyerId)" type="Chat">
+  Returns an existing `Chat` if one already exists for the `{listingId}-{buyerId}` combination, or creates and stores a new one. The `chatId` is always derived as `\`${listingId}-${buyerId}\``.
+
+  ```ts
+  getOrCreateChat: (listingId, listingTitle, sellerId, buyerId) => {
+    const chatId = `${listingId}-${buyerId}`;
+    const existing = get().chats[chatId];
+    if (existing) return existing;
+    const chat: Chat = {
+      id: chatId,
+      listingId,
+      listingTitle,
+      sellerId,
+      buyerId,
+      messages: [],
+    };
+    set((s) => ({ chats: { ...s.chats, [chatId]: chat } }));
+    return chat;
+  }
+  ```
+</ResponseField>
+
+<ResponseField name="addChatMessage(chatId: string, senderId: string, text: string)" type="void">
+  Appends a new `ChatMessage` to the specified chat thread. The message `id` is `msg-{Date.now()}` and `time` is formatted using `toLocaleTimeString` with hours and minutes.
+
+  ```ts
+  addChatMessage: (chatId, senderId, text) => {
+    const chat = get().chats[chatId];
+    if (!chat) return;
+    const msg: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      senderId,
+      text,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    set((s) => ({
+      chats: {
+        ...s.chats,
+        [chatId]: { ...chat, messages: [...chat.messages, msg] },
+      },
+    }));
+  }
+  ```
+</ResponseField>
+
+## Using the Store
+
+Import `useStore` and select only the slice you need. Zustand re-renders the component only when that specific slice changes:
+
+```tsx
+import { useStore } from '../store/useStore';
+
+// Reading a single value
+const user = useStore((state) => state.user);
+
+// Reading a value and an action together
+const listings = useStore((state) => state.listings);
+const addListing = useStore((state) => state.addListing);
+
+// Using an action directly
+const toggleFavorite = useStore((state) => state.toggleFavorite);
+// ...
+toggleFavorite(listing.id);
+```
+
+<Tip>
+  Always select the narrowest slice possible. Selecting the entire state object (`useStore((s) => s)`) will cause the component to re-render on every store update.
+</Tip>

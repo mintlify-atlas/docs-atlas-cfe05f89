@@ -1,0 +1,116 @@
+---
+title: "Application Routing"
+description: "All client-side routes in TruequeU, their components, auth requirements, and navigation structure."
+---
+
+TruequeU uses [React Router DOM v7](https://reactrouter.com) with `BrowserRouter` for client-side routing. The router is initialized in `main.tsx` and all route definitions are declared in `App.tsx`.
+
+## Router Setup
+
+`BrowserRouter` is mounted at the top level in `main.tsx`, wrapping the entire application:
+
+```tsx
+import { BrowserRouter } from 'react-router-dom'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </StrictMode>,
+)
+```
+
+Inside `App.tsx`, the `<Routes>` and `<Route>` components declare the full route tree:
+
+```tsx
+function App() {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Navbar />
+      <main className="flex-1">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/listings" element={<Listings />} />
+          <Route path="/listing/:id" element={<ListingDetail />} />
+          <Route path="/create" element={<CreateListing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/chat/:chatId" element={<Chat />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+    </div>
+  )
+}
+```
+
+## Route Reference
+
+| Path | Component | Auth Required |
+|---|---|---|
+| `/` | `Home` | No |
+| `/listings` | `Listings` | No |
+| `/listing/:id` | `ListingDetail` | No |
+| `/create` | `CreateListing` | Yes — redirects to `/login` |
+| `/login` | `Login` | No |
+| `/signup` | `Signup` | No |
+| `/chat` | `Chat` | Yes — shows inline login prompt |
+| `/chat/:chatId` | `Chat` | Yes — shows inline login prompt |
+| `/profile` | `Profile` | Yes — shows inline login prompt |
+| `*` | `NotFound` | No |
+
+<Note>
+  Auth-guarded routes do not all behave the same way. `/create` redirects the user to `/login`, while `/chat`, `/chat/:chatId`, and `/profile` render an inline message with a link to log in rather than performing a navigation redirect.
+</Note>
+
+## Route Parameters
+
+<ResponseField name=":id" type="string">
+  Used by `/listing/:id`. Identifies a specific listing in the `listings` array from the Zustand store. Corresponds to the `Listing.id` field (e.g., `"1"`, `"2"`).
+</ResponseField>
+
+<ResponseField name=":chatId" type="string">
+  Used by `/chat/:chatId`. Identifies a specific chat thread. Chat IDs are derived as `{listingId}-{buyerId}` (e.g., `"3-u7"`). See [State Management](/reference/state-management) for how chat IDs are generated.
+</ResponseField>
+
+## Navigation Structure
+
+The app shell is split into two parts: a sticky top `Navbar` and a full-height `main` content area below it.
+
+```
+┌─────────────────────────────────────────────┐
+│  Navbar (sticky, z-50)                       │
+│  Logo │ Search bar │ Listings Chat Profile   │
+│                              │ + Create Btn  │
+├─────────────────────────────────────────────┤
+│                                             │
+│  <main>  (flex-1, route content renders)    │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+
+The `Navbar` component (`src/components/layout/Navbar.tsx`) provides:
+- **Logo** — links to `/`
+- **Search bar** — updates `searchQuery` in the Zustand store on every keystroke; submits to `/listings`
+- **Nav links** — `Listings`, `Chat`, `Profile` (desktop only, hidden on smaller screens)
+- **Create Listing button** — links to `/create`
+
+## Protected Route Behavior
+
+TruequeU does not use a dedicated `<PrivateRoute>` wrapper component. Auth protection is handled inline within each page component by reading `user` from the Zustand store.
+
+<CardGroup cols={2}>
+  <Card title="Redirect on unauthenticated" icon="arrow-right">
+    `/create` redirects the user to `/login` if `user` is `null`.
+  </Card>
+  <Card title="Inline prompt on unauthenticated" icon="lock">
+    `/chat`, `/chat/:chatId`, and `/profile` render a message prompting the user to log in, with a link to `/login`.
+  </Card>
+</CardGroup>
+
+## Catch-All Route
+
+The `path="*"` route catches all unmatched URLs and renders the `NotFound` page. This handles any typos or stale links gracefully without crashing the application.

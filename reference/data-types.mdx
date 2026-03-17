@@ -1,0 +1,174 @@
+---
+title: "Data Types"
+description: "TypeScript interfaces and types used throughout the TruequeU codebase."
+---
+
+All core types are defined in `src/types.ts` and `src/store/useStore.ts`, and are re-exported as needed throughout the app.
+
+## ListingStatus
+
+A union type representing the lifecycle state of a listing.
+
+```typescript
+export type ListingStatus = "available" | "reserved" | "sold";
+```
+
+| Value | Description |
+|---|---|
+| `"available"` | The item is listed and open for offers |
+| `"reserved"` | A buyer has been chosen but the exchange is not complete |
+| `"sold"` | The exchange has been completed |
+
+---
+
+## Listing
+
+Represents an item posted on the marketplace.
+
+```typescript
+export interface Listing {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  category: string;
+  status: ListingStatus;
+  images: string[];
+  ownerId: string;
+  isFavorite: boolean;
+}
+```
+
+<ResponseField name="id" type="string" required>
+  Unique listing identifier.
+</ResponseField>
+
+<ResponseField name="title" type="string" required>
+  Item title. Must be between 3 and 100 characters.
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Item description. Must be between 10 and 1000 characters.
+</ResponseField>
+
+<ResponseField name="price" type="number" required>
+  Item price in dollars. Valid range: $0–$999,999.
+</ResponseField>
+
+<ResponseField name="category" type="string" required>
+  Category the item belongs to. One of: `Electronics`, `Books`, `Services`, or `Other`.
+</ResponseField>
+
+<ResponseField name="status" type="ListingStatus" required>
+  Current status of the listing: `available`, `reserved`, or `sold`.
+</ResponseField>
+
+<ResponseField name="images" type="string[]" required>
+  Array of image URLs or base64 data URLs attached to the listing.
+</ResponseField>
+
+<ResponseField name="ownerId" type="string" required>
+  ID of the user who created the listing.
+</ResponseField>
+
+<ResponseField name="isFavorite" type="boolean" required>
+  Whether the currently logged-in user has favorited this listing.
+</ResponseField>
+
+---
+
+## User
+
+Represents an authenticated user.
+
+```typescript
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+}
+```
+
+<ResponseField name="id" type="string" required>
+  Unique user identifier. Generated as `u${Date.now()}` for registered users.
+</ResponseField>
+
+<ResponseField name="email" type="string" required>
+  User email address. Stored and compared in lowercase.
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Display name shown in the UI.
+</ResponseField>
+
+---
+
+## Chat
+
+Represents a conversation thread between a buyer and a seller about a specific listing. Defined in `src/store/useStore.ts`.
+
+```typescript
+export interface Chat {
+  id: string;
+  listingId: string;
+  listingTitle: string;
+  sellerId: string;
+  buyerId: string;
+  messages: ChatMessage[];
+}
+```
+
+<ResponseField name="id" type="string" required>
+  Chat ID, composed as `{listingId}-{buyerId}`.
+</ResponseField>
+
+<ResponseField name="listingId" type="string" required>
+  ID of the listing this conversation is about.
+</ResponseField>
+
+<ResponseField name="listingTitle" type="string" required>
+  Title of the related listing, stored for display without requiring a separate lookup.
+</ResponseField>
+
+<ResponseField name="sellerId" type="string" required>
+  ID of the user who owns the listing.
+</ResponseField>
+
+<ResponseField name="buyerId" type="string" required>
+  ID of the user who initiated the conversation.
+</ResponseField>
+
+<ResponseField name="messages" type="ChatMessage[]" required>
+  Ordered array of messages in this conversation.
+</ResponseField>
+
+---
+
+## ChatMessage
+
+Represents a single message within a `Chat`. Defined in `src/store/useStore.ts`.
+
+```typescript
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  text: string;
+  time: string;
+}
+```
+
+<ResponseField name="id" type="string" required>
+  Message ID, generated as `msg-{timestamp}` using `Date.now()`.
+</ResponseField>
+
+<ResponseField name="senderId" type="string" required>
+  ID of the user who sent the message.
+</ResponseField>
+
+<ResponseField name="text" type="string" required>
+  The message content.
+</ResponseField>
+
+<ResponseField name="time" type="string" required>
+  Formatted time string in `HH:MM` format, generated via `toLocaleTimeString`.
+</ResponseField>

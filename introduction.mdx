@@ -1,0 +1,48 @@
+---
+title: "Introduction"
+description: "TruequeU is a peer-to-peer marketplace built for university students to buy, sell, and trade items within their campus community."
+---
+
+TruequeU connects university students who want to exchange goods — from textbooks and electronics to furniture and clothing — in a trusted, campus-focused environment. Students can list items, browse what others are offering, chat directly with sellers, and manage their own listings from a personal profile.
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="Student marketplace" icon="store">
+    Browse and list items for sale or trade with other students at your university. Listings include photos, descriptions, pricing, and availability status.
+  </Card>
+  <Card title="Listings" icon="tag">
+    Create detailed listings with a title, description, category, price, and images. Track each listing's status: available, reserved, or sold.
+  </Card>
+  <Card title="Real-time chat" icon="message-circle">
+    Contact sellers directly through the built-in chat system. Each listing has a dedicated chat thread between buyer and seller.
+  </Card>
+  <Card title="Favorites" icon="heart">
+    Save listings you're interested in by toggling the favorite button. Revisit saved items from your browsing history.
+  </Card>
+  <Card title="Profile" icon="user">
+    Manage your account and view all your active, reserved, and sold listings from your profile page at `/profile`.
+  </Card>
+  <Card title="Search" icon="search">
+    Filter listings in real time using the search bar in the navbar. Results update as you type to match listing titles and descriptions.
+  </Card>
+</CardGroup>
+
+<Note>
+  TruequeU uses your browser's localStorage to persist all data — listings, user sessions, and chat messages — between page refreshes. No external database is required to run the app.
+</Note>
+
+## Tech stack
+
+| Technology | Version | Role |
+|---|---|---|
+| React | 19 | UI component framework |
+| TypeScript | — | Static typing across the codebase |
+| Vite | — | Build tool and development server |
+| Zustand | — | Global state management with localStorage persistence |
+| TailwindCSS | v4 | Utility-first CSS styling |
+| React Router | v7 | Client-side routing (`/`, `/listings`, `/listing/:id`, `/create`, `/chat`, `/profile`) |
+
+## Next steps
+
+Ready to start using TruequeU? Head to the [Getting Started](/getting-started) guide to create your account and make your first listing.

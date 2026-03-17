@@ -1,0 +1,169 @@
+---
+title: "Listing Service"
+description: "Validation logic for creating and updating listings in TruequeU."
+---
+
+File: `src/services/listing.service.ts`
+
+The listing service exposes a single validation function used when creating or editing a listing. All exports are re-exported from `src/services/index.ts`.
+
+---
+
+## Constants
+
+The following module-level constants define the valid ranges for listing fields.
+
+| Constant | Value |
+|---|---|
+| `TITLE_MIN` | `3` |
+| `TITLE_MAX` | `100` |
+| `DESCRIPTION_MIN` | `10` |
+| `DESCRIPTION_MAX` | `1000` |
+| `PRICE_MIN` | `0` |
+| `PRICE_MAX` | `999999` |
+
+<Note>
+  These constants are not exported. They are used internally by `validateListing`.
+</Note>
+
+---
+
+## Types
+
+### `ListingValidation`
+
+The return type of `validateListing`.
+
+```typescript
+export interface ListingValidation {
+  valid: boolean;
+  message: string;
+}
+```
+
+<ResponseField name="valid" type="boolean" required>
+  `true` if all fields pass validation, `false` otherwise.
+</ResponseField>
+
+<ResponseField name="message" type="string" required>
+  Empty string when `valid` is `true`. A Spanish-language error description when `valid` is `false`.
+</ResponseField>
+
+---
+
+## Functions
+
+### `validateListing`
+
+Validates the fields of a new or edited listing. The `price` field is accepted as a string so it can be validated directly from form input before type conversion.
+
+```typescript
+export function validateListing(data: {
+  title: string;
+  description: string;
+  price: string;
+}): ListingValidation
+```
+
+**Parameters**
+
+<ParamField path="body.title" type="string" required>
+  Listing title. Trimmed before validation. Must be between 3 and 100 characters.
+</ParamField>
+
+<ParamField path="body.description" type="string" required>
+  Listing description. Trimmed before validation. Must be between 10 and 1000 characters.
+</ParamField>
+
+<ParamField path="body.price" type="string" required>
+  Item price as a string (raw form input). Converted to a number with `Number()`. Must be a valid number in the range $0–$999,999.
+</ParamField>
+
+**Returns:** `ListingValidation` — `{ valid: true, message: "" }` on success, or `{ valid: false, message: "..." }` with a Spanish error description on failure.
+
+**Validation order:**
+
+<Steps>
+  <Step title="Title length">
+    Checks that the trimmed title is at least `TITLE_MIN` (3) characters. Then checks it does not exceed `TITLE_MAX` (100) characters.
+  </Step>
+  <Step title="Description length">
+    Checks that the trimmed description is at least `DESCRIPTION_MIN` (10) characters. Then checks it does not exceed `DESCRIPTION_MAX` (1000) characters.
+  </Step>
+  <Step title="Price is a valid number">
+    Converts `data.price` to a number using `Number()`. Returns an error if the result is `NaN`.
+  </Step>
+  <Step title="Price range">
+    Checks that the price is not below `PRICE_MIN` (0) and does not exceed `PRICE_MAX` (999,999).
+  </Step>
+</Steps>
+
+**Error messages (in Spanish):**
+
+| Condition | Message |
+|---|---|
+| Title too short | `"El título debe tener al menos 3 caracteres"` |
+| Title too long | `"El título no puede superar 100 caracteres"` |
+| Description too short | `"La descripción debe tener al menos 10 caracteres"` |
+| Description too long | `"La descripción no puede superar 1000 caracteres"` |
+| Price is not a number | `"El precio debe ser un número válido"` |
+| Price is negative | `"El precio no puede ser negativo"` |
+| Price exceeds maximum | `"El precio no puede superar $999,999"` |
+
+**Source (from `src/services/listing.service.ts`):**
+
+```typescript
+export function validateListing(data: {
+  title: string;
+  description: string;
+  price: string;
+}): ListingValidation {
+  const title = data.title.trim();
+  if (title.length < TITLE_MIN) {
+    return { valid: false, message: `El título debe tener al menos ${TITLE_MIN} caracteres` };
+  }
+  if (title.length > TITLE_MAX) {
+    return { valid: false, message: `El título no puede superar ${TITLE_MAX} caracteres` };
+  }
+
+  const description = data.description.trim();
+  if (description.length < DESCRIPTION_MIN) {
+    return { valid: false, message: `La descripción debe tener al menos ${DESCRIPTION_MIN} caracteres` };
+  }
+  if (description.length > DESCRIPTION_MAX) {
+    return { valid: false, message: `La descripción no puede superar ${DESCRIPTION_MAX} caracteres` };
+  }
+
+  const priceNum = Number(data.price);
+  if (isNaN(priceNum)) {
+    return { valid: false, message: "El precio debe ser un número válido" };
+  }
+  if (priceNum < PRICE_MIN) {
+    return { valid: false, message: "El precio no puede ser negativo" };
+  }
+  if (priceNum > PRICE_MAX) {
+    return { valid: false, message: `El precio no puede superar $${PRICE_MAX.toLocaleString()}` };
+  }
+
+  return { valid: true, message: "" };
+}
+```
+
+**Usage example:**
+
+```typescript
+import { validateListing } from "../services";
+
+const result = validateListing({
+  title: "Laptop Dell XPS",
+  description: "En muy buen estado, solo 6 meses de uso.",
+  price: "450",
+});
+
+if (!result.valid) {
+  console.error(result.message);
+  // Show error in the form
+} else {
+  // Proceed to create the listing
+}
+```

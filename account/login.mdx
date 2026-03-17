@@ -1,0 +1,52 @@
+---
+title: "Log In"
+description: "Sign in to your TruequeU account to access your trades, listings, and messages."
+---
+
+Use the login page to access your TruequeU account. Authentication is handled by `validateLogin` in `auth.service.ts`, which checks your credentials against both the built-in seed users and any accounts you have registered locally.
+
+## How authentication works
+
+When you submit the login form, TruequeU searches for your email in two sources in order:
+
+1. **Registered users** — accounts stored in `localStorage` under `trueque-registered-users` (created via the sign-up flow).
+2. **Seed users** — the default demo accounts bundled in `data/users.ts`.
+
+Email comparison is **case-insensitive**: your input is lowercased and trimmed before being matched against stored emails. Passwords are compared as-is (case-sensitive).
+
+## Login process
+
+<Steps>
+  <Step title="Navigate to the login page">
+    Go to `/login`. You can also reach it from any page that requires authentication or from the sign-up page via the **Sign In** link.
+  </Step>
+  <Step title="Enter your email address">
+    Type the email you registered with (e.g. `juan.perez@eia.edu.co`). The check is case-insensitive, so `Juan.Perez@EIA.EDU.CO` works as well.
+  </Step>
+  <Step title="Enter your password">
+    Type your account password. Passwords are case-sensitive.
+  </Step>
+  <Step title="Submit the form">
+    Click **Sign In**. If the credentials are valid, you are logged in immediately and redirected to the home feed. If they are invalid, the error **"Email o contraseña incorrectos"** is displayed.
+  </Step>
+</Steps>
+
+## What happens after login
+
+Once authentication succeeds:
+
+- The Zustand `login` action is called with your `User` object (`{ id, email, name }`).
+- The user state is written to the global store and persisted via the `zustand/middleware/persist` layer under the storage key `marketplace-storage`.
+- You are redirected to `/` (the home feed).
+
+## Logging out
+
+To sign out, navigate to your **Profile** page and click **Sign Out**. This calls the Zustand `logout` action, which sets the user state back to `null` and clears your session from the store.
+
+<Note>
+  Your session is persisted across browser refreshes. Because TruequeU uses Zustand's `persist` middleware (storage key: `marketplace-storage`), you remain logged in even after closing and reopening the tab, as long as you are on the same device and browser and have not cleared local storage.
+</Note>
+
+<Tip>
+  Don't have an account yet? Head to [Sign Up](/account/sign-up) to create one in seconds — no email verification required.
+</Tip>

@@ -1,0 +1,192 @@
+---
+title: "Auth Service"
+description: "Functions for user authentication and registration in TruequeU."
+---
+
+File: `src/services/auth.service.ts`
+
+The auth service manages login validation and user registration. Registered users are persisted to `localStorage` under the key `"trueque-registered-users"`. Seed users are loaded from `src/data/users` and are checked as a fallback during login.
+
+<Note>
+  All functions in this service are re-exported from `src/services/index.ts`.
+</Note>
+
+---
+
+## Internal types
+
+### StoredUser
+
+`StoredUser` is an internal interface used only within this service. It is not exported.
+
+```typescript
+interface StoredUser extends User {
+  password: string;
+}
+```
+
+It extends the public `User` interface by adding the `password` field so credentials can be persisted and validated.
+
+---
+
+## Functions
+
+### `validateLogin`
+
+Validates a login attempt against stored users and seed data. Email comparison is case-insensitive.
+
+```typescript
+export function validateLogin(email: string, password: string): User | null
+```
+
+**Parameters**
+
+<ParamField path="body.email" type="string" required>
+  The email address entered by the user. Trimmed and lowercased before comparison.
+</ParamField>
+
+<ParamField path="body.password" type="string" required>
+  The password entered by the user. Compared as-is (no hashing).
+</ParamField>
+
+**Returns:** `User | null` — a `User` object on success, or `null` if credentials do not match.
+
+**Lookup order:**
+
+<Steps>
+  <Step title="Check localStorage users">
+    Searches users stored under `"trueque-registered-users"` in localStorage. Email comparison is case-insensitive.
+  </Step>
+  <Step title="Check seed data">
+    If no match is found in localStorage, falls back to the static seed users in `src/data/users`.
+  </Step>
+  <Step title="Return result">
+    Returns a `User` object (without the password field) if credentials match, or `null` if neither source has a matching user.
+  </Step>
+</Steps>
+
+```typescript
+import { validateLogin } from "../services";
+
+const user = validateLogin("maria@uni.edu", "Password1!");
+if (user) {
+  store.login(user);
+} else {
+  // show error message
+}
+```
+
+---
+
+### `registerUser`
+
+Creates a new user account and persists it to localStorage.
+
+```typescript
+export function registerUser(data: {
+  email: string;
+  name: string;
+  password: string;
+}): User
+```
+
+**Parameters**
+
+<ParamField path="body.email" type="string" required>
+  New user's email address. Stored lowercase and trimmed.
+</ParamField>
+
+<ParamField path="body.name" type="string" required>
+  Display name. Stored trimmed.
+</ParamField>
+
+<ParamField path="body.password" type="string" required>
+  Password for the account. Should be pre-validated with `validatePassword` before calling this function.
+</ParamField>
+
+**Returns:** `User` — the newly created user object (without the password field).
+
+The generated ID follows the format `u${Date.now()}`.
+
+```typescript
+import { registerUser } from "../services";
+
+const newUser = registerUser({
+  email: "carlos@uni.edu",
+  name: "Carlos",
+  password: "Secure1!",
+});
+// newUser.id => "u1718000000000"
+```
+
+<Warning>
+  `registerUser` does not check whether the email is already taken. Always call `isEmailTaken` first to prevent duplicate registrations.
+</Warning>
+
+---
+
+### `isEmailTaken`
+
+Checks whether an email is already in use by a seed user or a registered user.
+
+```typescript
+export function isEmailTaken(email: string): boolean
+```
+
+**Parameters**
+
+<ParamField path="body.email" type="string" required>
+  Email address to check. Comparison is case-insensitive.
+</ParamField>
+
+**Returns:** `boolean` — `true` if the email exists in seed data or localStorage, `false` otherwise.
+
+```typescript
+import { isEmailTaken } from "../services";
+
+if (isEmailTaken("maria@uni.edu")) {
+  // show "email already registered" error
+}
+```
+
+---
+
+### `validatePassword`
+
+Validates a password string against the application's security rules.
+
+```typescript
+export function validatePassword(password: string): { valid: boolean; message: string }
+```
+
+**Parameters**
+
+<ParamField path="body.password" type="string" required>
+  The password string to validate.
+</ParamField>
+
+**Returns:** `{ valid: boolean, message: string }` — `valid` is `true` if all rules pass; otherwise `valid` is `false` and `message` contains a Spanish-language error description.
+
+**Validation rules (checked in order):**
+
+| # | Rule | Error message |
+|---|---|---|
+| 1 | Minimum 8 characters | `"Mínimo 8 caracteres"` |
+| 2 | At least one uppercase letter | `"Debe incluir una mayúscula"` |
+| 3 | At least one lowercase letter | `"Debe incluir una minúscula"` |
+| 4 | At least one digit | `"Debe incluir un número"` |
+| 5 | At least one special character | `"Debe incluir un carácter especial"` |
+
+```typescript
+import { validatePassword } from "../services";
+
+const result = validatePassword("mypassword");
+// => { valid: false, message: "Debe incluir una mayúscula" }
+
+const ok = validatePassword("Secure1!");
+// => { valid: true, message: "" }
+```
+
+<Tip>
+  Call `validatePassword` on every keystroke during registration to give the user real-time feedback before they submit the form.
+</Tip>

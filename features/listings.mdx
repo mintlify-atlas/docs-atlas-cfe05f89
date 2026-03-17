@@ -1,0 +1,57 @@
+---
+title: "Browsing Listings"
+description: "Explore and search all items available for trade or sale in the TruequeU marketplace."
+---
+
+The listings page shows every item available in the TruequeU community — both seed items and listings created by other students. Navigate to `/listings` from the navbar to access it.
+
+## Searching listings
+
+The search bar in the navbar filters listings in real time by title. As you type, only listings whose titles match your query are shown. The filter is case-insensitive.
+
+<Tip>
+  Search is matched against the listing title only. If you don't find what you need, try broader terms — for example, search "calc" instead of "Calculus Stewart 8th Edition".
+</Tip>
+
+If no listings match your query, the page shows: *"No listings match your search. Try adjusting your search terms."*
+
+## Listing statuses
+
+Every listing has one of three statuses, displayed as a badge on the listing card.
+
+<CardGroup cols={2}>
+  <Card title="Available" icon="circle-check">
+    The item is actively listed and open for contact. Buyers can message the seller directly from the card or detail page.
+  </Card>
+  <Card title="Reserved" icon="clock">
+    The seller has tentatively agreed to a transaction with a buyer. The listing is still visible but may not be available.
+  </Card>
+  <Card title="Sold" icon="circle-xmark">
+    The item has been traded or sold. The listing remains visible for reference but is no longer active.
+  </Card>
+  <Card title="Other" icon="tag">
+    Some listings may use custom statuses set by the seller to reflect the item's current state.
+  </Card>
+</CardGroup>
+
+## Categories
+
+Listings are organized into four categories:
+
+- **Electronics** — Laptops, tablets, phones, accessories, and other devices.
+- **Books** — Textbooks, course materials, and study guides.
+- **Services** — Tutoring, design work, repairs, and other student-offered services.
+- **Other** — Anything that doesn't fit the above categories.
+
+You can see a listing's category on its detail page, displayed above the title.
+
+## Viewing a listing
+
+Click **Details** on any listing card to open the full listing detail page at `/listing/:id`. The detail page shows:
+
+- The item's image gallery (with thumbnail navigation)
+- Title, price, category, and status
+- Full description
+- Seller information (name and university email domain)
+- A **Contact Seller** button to open a direct chat
+- A **Make an Offer** button

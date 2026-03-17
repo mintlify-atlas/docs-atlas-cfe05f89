@@ -1,0 +1,58 @@
+---
+title: "Messaging & Chat"
+description: "Contact sellers and buyers directly through TruequeU's built-in chat system."
+---
+
+<Note>
+  You must be logged in to send or receive messages. If you click a chat link while logged out, TruequeU redirects you to `/login`.
+</Note>
+
+TruequeU includes a peer-to-peer messaging system so students can negotiate trades and ask questions without leaving the platform.
+
+## Starting a chat
+
+You can open a conversation from two places:
+
+- **Listing card** — Click the green **Chat** button on any listing card in `/listings`.
+- **Listing detail page** — Click **Contact Seller** (or the **Contact** link in the seller card) on `/listing/:id`.
+
+Both actions navigate to `/chat/{listingId}-{userId}`, where `listingId` is the listing's ID and `userId` is your own user ID. If the chat doesn't exist yet, TruequeU creates it automatically via `getOrCreateChat`.
+
+<Info>
+  If you are the owner of a listing, clicking the chat button on your own listing takes you to `/chat` (your inbox) instead of creating a new conversation with yourself.
+</Info>
+
+## Chat URL structure
+
+Every conversation has a deterministic ID:
+
+```
+/chat/{listingId}-{buyerId}
+```
+
+For example, if the listing ID is `item-42` and your user ID is `user-7`, the chat URL is `/chat/item-42-user-7`. This means each buyer–listing pair has exactly one conversation thread.
+
+## Chat sidebar
+
+The left sidebar on `/chat` lists all conversations where you appear as either the **buyer** or the **seller**. Each entry shows:
+
+- The other participant's avatar (generated via DiceBear)
+- Their name
+- The last message sent, or the listing title if no messages exist yet
+
+Click any conversation in the sidebar to open it in the message area.
+
+## Sending messages
+
+With an active conversation open:
+
+1. Type your message in the input field at the bottom of the chat area.
+2. Press **Enter** or click **Enviar** to send.
+
+Your messages appear on the right side of the conversation (indigo bubbles). The other participant's messages appear on the left (slate bubbles). Each message shows the time it was sent.
+
+## Chat persistence
+
+<Info>
+  All chat messages are stored in `localStorage` via Zustand's `persist` middleware under the key `marketplace-storage`. Your conversations survive page refreshes and browser restarts, as long as you use the same browser and don't clear local storage.
+</Info>

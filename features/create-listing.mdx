@@ -1,0 +1,58 @@
+---
+title: "Creating a Listing"
+description: "Publish a new item or service to the TruequeU marketplace for other students to find."
+---
+
+<Warning>
+  You must be logged in to create a listing. If you visit `/create` without an active session, TruequeU will show a prompt directing you to log in.
+</Warning>
+
+To publish a new listing, navigate to `/create` or click **+ New Listing** from your profile page.
+
+## Steps
+
+<Steps>
+  <Step title="Navigate to the create listing page">
+    Go to `/create` directly, or open your profile at `/profile` and click the **+ New Listing** button in the top-right of your profile card.
+  </Step>
+  <Step title="Enter a title">
+    Type a descriptive title for your item in the **Item Title** field. A good title helps other students find your listing through search.
+
+    Example: *Calculus Stewart 8th Edition*
+  </Step>
+  <Step title="Set a price">
+    Enter the price in USD in the **Price ($)** field. You can set it to `0` for a free item or giveaway. Prices up to `$999,999` are accepted.
+  </Step>
+  <Step title="Choose a category">
+    Select one of the four categories from the **Category** dropdown:
+    - **Electronics** — Devices and accessories
+    - **Books** — Textbooks and course materials
+    - **Services** — Skills and services offered to other students
+    - **Other** — Everything else
+  </Step>
+  <Step title="Write a description">
+    Describe your item in the **Description** field. Include condition, reason for selling, and any extras included (e.g., case, charger, accessories). Descriptions must be at least 10 characters.
+  </Step>
+  <Step title="Upload a product image (optional)">
+    Click **Browse files** or drag and drop an image into the upload area. TruequeU reads the file using the browser's `FileReader` API and stores it as a base64 data URL — no external upload required.
+
+    If you skip this step, a placeholder image will be used automatically.
+  </Step>
+  <Step title="Publish the listing">
+    Click **Publish Listing**. TruequeU will validate your inputs, add the listing to the store, and redirect you to the home page.
+  </Step>
+</Steps>
+
+## Validation rules
+
+| Field | Minimum | Maximum | Required |
+|---|---|---|---|
+| Title | 3 characters | 100 characters | Yes |
+| Price | $0 | $999,999 | Yes |
+| Description | 10 characters | 1,000 characters | Yes |
+| Image | — | — | No |
+| Category | — | — | Yes (defaults to Electronics) |
+
+<Note>
+  After publishing, your listing is immediately added to the top of the featured section on the home page and visible to all students browsing `/listings`.
+</Note>

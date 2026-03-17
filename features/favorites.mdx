@@ -1,0 +1,33 @@
+---
+title: "Favorites"
+description: "Save listings you're interested in by marking them as favorites in TruequeU."
+---
+
+Favorites let you bookmark listings you're interested in. Each listing has an `isFavorite` boolean flag that you can toggle at any time.
+
+## How favorites work
+
+The `isFavorite` field is part of the `Listing` interface defined in `types.ts`. When you favorite a listing, the `toggleFavorite` action in the Zustand store flips `isFavorite` from `false` to `true` (or back). The change is applied to the store's `listings` array immediately.
+
+## Favoriting an item
+
+You can toggle the favorite state from two places:
+
+- **Listing card** — Click the heart icon (♥) in the top-right corner of any listing card in the grid. The button is visible on every card in `/listings`.
+- **Listing detail page** — The favorite action is accessible from the detail view at `/listing/:id`.
+
+Clicking the heart toggles `isFavorite` on that listing. A filled/highlighted heart indicates the listing is currently favorited.
+
+## Finding your favorited listings
+
+Favorited listings are marked with `isFavorite: true` in the store. You can identify them by the highlighted heart icon on their cards when browsing `/listings`.
+
+## Persistence
+
+<Info>
+  Favorites are persisted to `localStorage` via Zustand's `persist` middleware. The store serializes the `listings` array (including `isFavorite` flags) under the key `marketplace-storage`. Your favorites are restored automatically when you reopen TruequeU in the same browser, even after a full page refresh.
+</Info>
+
+<Note>
+  Favorites are stored locally in your browser. They are not synced across devices or shared with other users.
+</Note>

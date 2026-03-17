@@ -1,0 +1,54 @@
+---
+title: "Getting Started"
+description: "A step-by-step guide to creating an account, browsing listings, chatting with sellers, and posting your first item on TruequeU."
+---
+
+This guide walks you through everything you need to start buying and selling on TruequeU — from opening the app for the first time to creating your own listing.
+
+<Note>
+  TruequeU stores all data (your account, listings, and chat messages) in your browser's localStorage. Your data is tied to the browser you use and will not sync across devices.
+</Note>
+
+<Steps>
+  <Step title="Open the app">
+    Navigate to the TruequeU home page in your browser. You'll land on the home page at `/`, which displays a welcome banner and six featured listings to give you a sense of what's available.
+  </Step>
+
+  <Step title="Sign up for an account">
+    Go to `/signup` to create your account. You'll need to provide your name, email address, and a password.
+
+    Your password must meet the following requirements:
+
+    - At least 8 characters long
+    - At least one uppercase letter
+    - At least one lowercase letter
+    - At least one number
+    - At least one special character (e.g. `!`, `@`, `#`, `$`)
+
+    Once registered, you'll be logged in automatically and redirected to the home page.
+  </Step>
+
+  <Step title="Browse listings">
+    Go to `/listings` to see all available items posted by other students. Each listing card shows the item's title, price, category, and a preview image.
+  </Step>
+
+  <Step title="Search for items">
+    Use the search bar in the navbar to filter listings in real time. As you type, the listings page updates to show only items whose titles or descriptions match your query.
+  </Step>
+
+  <Step title="View a listing's details">
+    Click any listing card to open its detail page at `/listing/:id`. You'll see the full description, all images, the asking price, current status (available, reserved, or sold), and the seller's information.
+  </Step>
+
+  <Step title="Contact the seller">
+    On the listing detail page, click the **Chat** button to open a direct message thread with the seller. This creates a dedicated conversation at `/chat/:chatId` where you can negotiate, ask questions, or arrange a meetup.
+  </Step>
+
+  <Step title="Create your own listing">
+    Ready to sell something? Go to `/create` to post a new listing. Fill in the title (3–100 characters), description (10–1,000 characters), price (\$0–\$999,999), category, and upload images. Once submitted, your listing appears immediately in the marketplace.
+  </Step>
+</Steps>
+
+<Tip>
+  Visit your profile page at `/profile` to see all the listings you've created. From there you can update a listing's status to **reserved** or **sold** as transactions progress.
+</Tip>

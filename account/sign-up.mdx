@@ -1,0 +1,67 @@
+---
+title: "Sign Up"
+description: "Create a TruequeU account to start trading items with students on your campus."
+---
+
+To participate in TruequeU's peer-to-peer marketplace, you need an account. Registration is free and takes only a few seconds. Once you sign up, you are immediately logged in and redirected to the home feed.
+
+## Required fields
+
+| Field | Description |
+|---|---|
+| Full Name | Your display name shown on listings and chats |
+| University Email | Used as your unique login identifier |
+| Major / Faculty | Your faculty or area of study |
+| Password | Must meet all strength requirements (see below) |
+| Confirm Password | Must exactly match the password field |
+
+## Password requirements
+
+Passwords are validated by `validatePassword` in `auth.service.ts` before the account is created. All five rules must pass simultaneously:
+
+1. Minimum 8 characters
+2. Must include an uppercase letter
+3. Must include a lowercase letter
+4. Must include a number
+5. Must include a special character (any non-alphanumeric character)
+
+Example of a valid password: `Juan123!`
+
+## Sign-up process
+
+<Steps>
+  <Step title="Navigate to the sign-up page">
+    Go to `/signup`. You can also reach it from the login page via the **Create one now** link.
+  </Step>
+  <Step title="Enter your full name">
+    Type your full name in the **Full Name** field. This is the name other students will see on your listings and in chat.
+  </Step>
+  <Step title="Enter a valid email address">
+    Provide your university email address (e.g. `name@university.edu`). This will be your login identifier and must not already be registered.
+  </Step>
+  <Step title="Enter your major or faculty">
+    Type your field of study or faculty (e.g. `Engineering`). This field is required.
+  </Step>
+  <Step title="Choose a strong password">
+    Pick a password that satisfies all five requirements listed above. Re-enter it in the **Confirm Password** field to confirm they match.
+  </Step>
+  <Step title="Submit the form">
+    Click **Create Account**. If all validations pass, your account is created instantly, you are logged in, and you are redirected to the home feed.
+  </Step>
+</Steps>
+
+## What happens after sign-up
+
+Once registration succeeds:
+
+- A new `User` object (`{ id, email, name }`) is created and saved to localStorage.
+- The Zustand `login` action is called, setting the user in the global store.
+- You are redirected to `/` (the home feed) and can immediately browse or post listings.
+
+<Warning>
+  Email addresses are unique across TruequeU. If the email you enter is already registered — either in the seed dataset or by a previous sign-up — the form will show the error **"Este correo ya está registrado"** and the account will not be created. Use a different email or log in to your existing account.
+</Warning>
+
+<Note>
+  Registered users are persisted in `localStorage` under the key `trueque-registered-users`. This means your account survives browser refreshes on the same device, but it is not synced across devices or browsers. Clearing your browser's local storage will remove all locally registered accounts.
+</Note>
